@@ -96,8 +96,7 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
   }
 
   @override
-  // ignore: deprecated_member_use
-  bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+  bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
     final isLeft = keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
         keysPressed.contains(LogicalKeyboardKey.keyA);
     final isRight = keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
@@ -118,6 +117,29 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
 
     return super.onKeyEvent(event, keysPressed);
   }
+
+  // @override
+  // bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+  //   final isLeft = keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
+  //       keysPressed.contains(LogicalKeyboardKey.keyA);
+  //   final isRight = keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
+  //       keysPressed.contains(LogicalKeyboardKey.keyD);
+  //   // final isJump = keysPressed.contains(LogicalKeyboardKey.space) ||
+  //   //     keysPressed.contains(LogicalKeyboardKey.arrowUp) ||
+  //   //     keysPressed.contains(LogicalKeyboardKey.keyW);
+
+  //   if (isLeft && isRight) {
+  //     playerDirection = PlayerDirection.none;
+  //   } else if (isLeft) {
+  //     playerDirection = PlayerDirection.left;
+  //   } else if (isRight) {
+  //     playerDirection = PlayerDirection.right;
+  //   } else {
+  //     playerDirection = PlayerDirection.none;
+  //   }
+
+  //   return super.onKeyEvent(event, keysPressed);
+  // }
 
   void _loadAnimation() {
     doubleJumpAnimation =
