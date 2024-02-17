@@ -22,6 +22,11 @@ flutter:
 
   assets:
     - assets/images/Terrain/
+    - assets/images/HUD/
+    - assets/images/Main Characters/Pink Man/
+    - assets/images/Main Characters/Virtual Guy/
+    - assets/images/Main Characters/Ninja Frog/
+    - assets/images/Main Characters/Mask Dude/
     - assets/tiles/
   # fonts:
   #   - family: Schyler
