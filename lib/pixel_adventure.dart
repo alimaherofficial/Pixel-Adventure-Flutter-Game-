@@ -4,27 +4,30 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:pixel_adventure_game/actors/player.dart';
 import 'package:pixel_adventure_game/core/utils/assets.dart';
 import 'package:pixel_adventure_game/levels/levels/level_01.dart';
 
+
 /// The main game class. This is where the game logic and assets are defined.
 class PixelAdventure extends FlameGame
     with HasKeyboardHandlerComponents, DragCallbacks {
-  @override
-  Color backgroundColor() => const Color(0xFF211f30);
-
   /// joystick component
   late JoystickComponent joystick;
+  // @override
+  // Color backgroundColor() => const Color(0xFF211f30);
+
+  /// The player of the game.
+  static Player player = Player(
+    character: 'Pink Man',
+    playerState: PlayerState.idle,
+  );
 
   /// The first level of the game.
-  final level1 = Level01(
+  static Level01 level1 = Level01(
     assetPath: Assets.level01,
-    player: Player(
-      character: 'Pink Man',
-      playerState: PlayerState.idle,
-    ),
+    player: player,
   );
 
   /// The camera component.
@@ -44,30 +47,38 @@ class PixelAdventure extends FlameGame
       cam,
       level1,
     ]);
-   await addJoyStick();
+    addJoyStick();
 
     return super.onLoad();
   }
 
-  // @override
-  // void update(double dt) {
-  //   updateJoystick(dt);
-  //   super.update(dt);
-  // }
-
-  /// Add joystick to the game
-  Future<void> addJoyStick() async {
-    joystick = JoystickComponent(
-      knob: SpriteComponent(
-        sprite: Sprite(images.fromCache(Assets.joystickKnob)),
-      ),
-      background: SpriteComponent(
-        sprite: Sprite(images.fromCache(Assets.joystick)),
-      ),
-      margin: const EdgeInsets.only(left: 20, bottom: 20),
-    );
-    await add(joystick);
+  @override
+  void update(double dt) {
+    updateJoystick(dt);
+    super.update(dt);
   }
 
+  /// Add joystick to the game
+  void addJoyStick() {
+    joystick = JoystickComponent(
+      knob: SpriteComponent(
+        sprite: Sprite(
+          images.fromCache(Assets.joystickKnob),
+        ),
+      ),
+      background: SpriteComponent(
+        sprite: Sprite(
+          images.fromCache(Assets.joystick),
+        ),
+      ),
+
+      margin: const EdgeInsets.only(left: 32, bottom: 32),
+    );
+
+  
+    add(joystick);
+  }
+
+  // ignore: public_member_api_docs
   void updateJoystick(double dt) {}
 }
