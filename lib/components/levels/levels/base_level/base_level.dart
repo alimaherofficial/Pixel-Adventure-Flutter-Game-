@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
-import 'package:pixel_adventure_game/actors/player.dart';
+import 'package:pixel_adventure_game/components/players/player.dart';
 
 /// Base level class for all levels
 abstract class BaseLevel extends World {

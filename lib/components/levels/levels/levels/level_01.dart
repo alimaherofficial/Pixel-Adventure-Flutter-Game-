@@ -1,4 +1,4 @@
-import 'package:pixel_adventure_game/levels/base_level/base_level.dart';
+import 'package:pixel_adventure_game/components/levels/levels/base_level/base_level.dart';
 
 /// Level 01 of the game.
 class Level01 extends BaseLevel {

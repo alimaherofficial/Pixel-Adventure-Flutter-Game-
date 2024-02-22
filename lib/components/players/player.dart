@@ -29,17 +29,17 @@ enum PlayerState {
   wallJump,
 }
 
-/// player direction
-enum PlayerDirection {
-  /// The player is facing left
-  left,
+// /// player direction
+// enum PlayerDirection {
+//   /// The player is facing left
+//   left,
 
-  /// The player is facing right
-  right,
+//   /// The player is facing right
+//   right,
 
-  /// The player is not moving
-  none,
-}
+//   /// The player is not moving
+//   none,
+// }
 
 /// Player class to store player name and score
 class Player extends SpriteAnimationGroupComponent<dynamic>
@@ -57,11 +57,11 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
   /// The player's state
   PlayerState playerState;
 
-  /// The player's direction
-  PlayerDirection playerDirection = PlayerDirection.none;
+  // /// The player's direction
+  // PlayerDirection playerDirection = PlayerDirection.none;
 
-  /// isFacingRight
-  bool isFacingRight = true;
+  // /// isFacingRight
+  // bool isFacingRight = true;
 
   /// movement speed
   double movementSpeed = 100;
@@ -71,6 +71,9 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
 
   /// The time it takes to go through each frame of the animation
   final stepTime = 0.05;
+
+  /// The horizontal movement
+  double horizontalMovement = 0;
 
   /// The idle animation
   late final SpriteAnimation doubleJumpAnimation,
@@ -92,28 +95,39 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
   @override
   void update(double dt) {
     _updatePlayerMovement(dt);
+    _updatePlayerState();
     super.update(dt);
   }
 
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    horizontalMovement = 0;
     final isLeft = keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
         keysPressed.contains(LogicalKeyboardKey.keyA);
     final isRight = keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
         keysPressed.contains(LogicalKeyboardKey.keyD);
+
+    horizontalMovement = isRight && isLeft
+        ? 0
+        : isRight
+            ? 1
+            : isLeft
+                ? -1
+                : 0;
+
     // final isJump = keysPressed.contains(LogicalKeyboardKey.space) ||
     //     keysPressed.contains(LogicalKeyboardKey.arrowUp) ||
     //     keysPressed.contains(LogicalKeyboardKey.keyW);
 
-    if (isLeft && isRight) {
-      playerDirection = PlayerDirection.none;
-    } else if (isLeft) {
-      playerDirection = PlayerDirection.left;
-    } else if (isRight) {
-      playerDirection = PlayerDirection.right;
-    } else {
-      playerDirection = PlayerDirection.none;
-    }
+    // if (isLeft && isRight) {
+    //   playerDirection = PlayerDirection.none;
+    // } else if (isLeft) {
+    //   playerDirection = PlayerDirection.left;
+    // } else if (isRight) {
+    //   playerDirection = PlayerDirection.right;
+    // } else {
+    //   playerDirection = PlayerDirection.none;
+    // }
 
     return super.onKeyEvent(event, keysPressed);
   }
@@ -185,28 +199,20 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
   }
 
   void _updatePlayerMovement(double dt) {
-    var dirX = 0.0;
-    switch (playerDirection) {
-      case PlayerDirection.left:
-        if (isFacingRight) {
-          flipHorizontallyAroundCenter();
-          isFacingRight = false;
-        }
-        current = PlayerState.run;
-
-        dirX -= movementSpeed;
-
-      case PlayerDirection.right:
-        if (!isFacingRight) {
-          flipHorizontallyAroundCenter();
-          isFacingRight = true;
-        }
-        current = PlayerState.run;
-        dirX += movementSpeed;
-      case PlayerDirection.none:
-        current = PlayerState.idle;
-    }
-    velocity.x = dirX;
+    velocity.x = horizontalMovement * movementSpeed;
     position += velocity * dt;
+  }
+
+  void _updatePlayerState() {
+    if (velocity.x < 0 && scale.x > 0) {
+      flipHorizontallyAroundCenter();
+    } else if (velocity.x > 0 && scale.x < 0) {
+      flipHorizontallyAroundCenter();
+    }
+    if (horizontalMovement != 0) {
+      current = PlayerState.run;
+    } else {
+      current = PlayerState.idle;
+    }
   }
 }

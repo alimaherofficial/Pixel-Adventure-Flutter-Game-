@@ -1,22 +1,22 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/painting.dart';
-import 'package:pixel_adventure_game/actors/player.dart';
+import 'package:pixel_adventure_game/components/levels/levels/levels/level_01.dart';
+import 'package:pixel_adventure_game/components/players/player.dart';
 import 'package:pixel_adventure_game/core/utils/assets.dart';
-import 'package:pixel_adventure_game/levels/levels/level_01.dart';
-
 
 /// The main game class. This is where the game logic and assets are defined.
 class PixelAdventure extends FlameGame
     with HasKeyboardHandlerComponents, DragCallbacks {
   /// joystick component
   late JoystickComponent joystick;
-  // @override
-  // Color backgroundColor() => const Color(0xFF211f30);
+  @override
+  Color backgroundColor() => const Color(0xFF211f30);
 
   /// The player of the game.
   static Player player = Player(
@@ -33,33 +33,45 @@ class PixelAdventure extends FlameGame
   /// The camera component.
   late final CameraComponent cam;
 
+  /// Show joystick only on mobile
+  bool showJoystick = false;
+
   @override
   FutureOr<void> onLoad() async {
-    await images.loadAllImages();
-    cam = CameraComponent.withFixedResolution(
-      width: 640,
-      height: 360,
-      world: level1,
-    );
-    cam.viewfinder.anchor = Anchor.topLeft;
+    try {
+      await images.loadAllImages();
+      cam = CameraComponent.withFixedResolution(
+        width: 640,
+        height: 360,
+        world: level1,
+      );
 
-    await addAll([
-      cam,
-      level1,
-    ]);
-    addJoyStick();
+      cam.viewfinder.anchor = Anchor.topLeft;
+
+      await addAll([
+        cam,
+        level1,
+      ]);
+      if (showJoystick) {
+        await addJoyStick();
+      }
+    } catch (e) {
+      log(e.toString());
+    }
 
     return super.onLoad();
   }
 
   @override
   void update(double dt) {
-    updateJoystick(dt);
+    if (showJoystick) {
+      updateJoystick(dt);
+    }
     super.update(dt);
   }
 
   /// Add joystick to the game
-  void addJoyStick() {
+  Future<void> addJoyStick() async {
     joystick = JoystickComponent(
       knob: SpriteComponent(
         sprite: Sprite(
@@ -71,14 +83,28 @@ class PixelAdventure extends FlameGame
           images.fromCache(Assets.joystick),
         ),
       ),
-
       margin: const EdgeInsets.only(left: 32, bottom: 32),
     );
 
-  
-    add(joystick);
+    await add(joystick);
   }
 
-  // ignore: public_member_api_docs
-  void updateJoystick(double dt) {}
+  /// Handle Joystick movement
+  void updateJoystick(double dt) {
+    switch (joystick.direction) {
+      case JoystickDirection.left:
+      case JoystickDirection.upLeft:
+      case JoystickDirection.downLeft:
+        player.horizontalMovement = -1;
+
+      case JoystickDirection.right:
+      case JoystickDirection.upRight:
+      case JoystickDirection.downRight:
+        player.horizontalMovement = 1;
+
+      // ignore: no_default_cases
+      default:
+        player.horizontalMovement = 0;
+    }
+  }
 }
