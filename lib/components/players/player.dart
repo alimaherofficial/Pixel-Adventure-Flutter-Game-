@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
+import 'package:pixel_adventure_game/components/collisions/collision_block.dart';
 import 'package:pixel_adventure_game/core/utils/assets.dart';
+import 'package:pixel_adventure_game/core/utils/collisions_helper.dart';
+import 'package:pixel_adventure_game/main.dart';
 import 'package:pixel_adventure_game/pixel_adventure.dart';
 
 /// The player state
@@ -29,18 +32,6 @@ enum PlayerState {
   wallJump,
 }
 
-// /// player direction
-// enum PlayerDirection {
-//   /// The player is facing left
-//   left,
-
-//   /// The player is facing right
-//   right,
-
-//   /// The player is not moving
-//   none,
-// }
-
 /// Player class to store player name and score
 class Player extends SpriteAnimationGroupComponent<dynamic>
     with HasGameRef<PixelAdventure>, KeyboardHandler {
@@ -57,12 +48,6 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
   /// The player's state
   PlayerState playerState;
 
-  // /// The player's direction
-  // PlayerDirection playerDirection = PlayerDirection.none;
-
-  // /// isFacingRight
-  // bool isFacingRight = true;
-
   /// movement speed
   double movementSpeed = 100;
 
@@ -74,6 +59,21 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
 
   /// The horizontal movement
   double horizontalMovement = 0;
+
+  /// The collision blocks
+  final List<CollisionBlock> collisionBlocks = [];
+
+  /// The gravity, jump velocity, and terminal velocity
+  final double _gravity = 9.8;
+
+  /// The jump velocity
+  final double _jumpVelocity = 460;
+
+  /// The terminal velocity
+  final double _terminalVelocity = 300;
+
+  /// On ground flag
+  bool isOnGround = false;
 
   /// The idle animation
   late final SpriteAnimation doubleJumpAnimation,
@@ -89,13 +89,19 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
   FutureOr<void> onLoad() async {
     _loadAnimation();
 
+    /// debug mode
+    debugMode = isDebug;
+
     return super.onLoad();
   }
 
   @override
   void update(double dt) {
-    _updatePlayerMovement(dt);
     _updatePlayerState();
+    _updatePlayerMovement(dt);
+    _checkHorizontalCollision();
+    _checkVerticalCollision();
+    _applyGravity(dt);
     super.update(dt);
   }
 
@@ -115,45 +121,8 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
                 ? -1
                 : 0;
 
-    // final isJump = keysPressed.contains(LogicalKeyboardKey.space) ||
-    //     keysPressed.contains(LogicalKeyboardKey.arrowUp) ||
-    //     keysPressed.contains(LogicalKeyboardKey.keyW);
-
-    // if (isLeft && isRight) {
-    //   playerDirection = PlayerDirection.none;
-    // } else if (isLeft) {
-    //   playerDirection = PlayerDirection.left;
-    // } else if (isRight) {
-    //   playerDirection = PlayerDirection.right;
-    // } else {
-    //   playerDirection = PlayerDirection.none;
-    // }
-
     return super.onKeyEvent(event, keysPressed);
   }
-
-  // @override
-  // bool onKeyEvent(RawKeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-  //   final isLeft = keysPressed.contains(LogicalKeyboardKey.arrowLeft) ||
-  //       keysPressed.contains(LogicalKeyboardKey.keyA);
-  //   final isRight = keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
-  //       keysPressed.contains(LogicalKeyboardKey.keyD);
-  //   // final isJump = keysPressed.contains(LogicalKeyboardKey.space) ||
-  //   //     keysPressed.contains(LogicalKeyboardKey.arrowUp) ||
-  //   //     keysPressed.contains(LogicalKeyboardKey.keyW);
-
-  //   if (isLeft && isRight) {
-  //     playerDirection = PlayerDirection.none;
-  //   } else if (isLeft) {
-  //     playerDirection = PlayerDirection.left;
-  //   } else if (isRight) {
-  //     playerDirection = PlayerDirection.right;
-  //   } else {
-  //     playerDirection = PlayerDirection.none;
-  //   }
-
-  //   return super.onKeyEvent(event, keysPressed);
-  // }
 
   void _loadAnimation() {
     doubleJumpAnimation =
@@ -213,6 +182,53 @@ class Player extends SpriteAnimationGroupComponent<dynamic>
       current = PlayerState.run;
     } else {
       current = PlayerState.idle;
+    }
+  }
+
+  void _checkHorizontalCollision() {
+    for (final block in collisionBlocks) {
+      if (CollisionsHelper.checkCollision(this, block)) {
+        if (block.isPlatform) {
+        } else {
+          if (velocity.x > 0) {
+            velocity.x = 0;
+            position.x = block.x - width;
+            break;
+          }
+          if (velocity.x < 0) {
+            velocity.x = 0;
+            position.x = block.x + block.width + width;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  void _applyGravity(double dt) {
+    velocity.y += _gravity;
+    velocity.y = velocity.y.clamp(-_jumpVelocity, _terminalVelocity);
+    position.y += velocity.y * dt;
+  }
+
+  void _checkVerticalCollision() {
+    for (final block in collisionBlocks) {
+      if (CollisionsHelper.checkCollision(this, block)) {
+        if (block.isPlatform) {
+        } else {
+          if (velocity.y > 0) {
+            velocity.y = 0;
+            position.y = block.y - width;
+            isOnGround = true;
+            break;
+          }
+          if (velocity.y < 0) {
+            velocity.y = 0;
+            position.y = block.y + block.height + width;
+            break;
+          }
+        }
+      }
     }
   }
 }
